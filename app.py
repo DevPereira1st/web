@@ -131,5 +131,6 @@ def analisar():
         "analise_ia": f"Modelo Preditivo otimizado para Cortes de Jogos no {plataforma.upper()}: A atenção do público gamer tende a se concentrar fortemente no início da noite e avançar pela madrugada. A linha tracejada em 50% separa o verde (horários ideais para postar seus cortes) do vermelho (períodos de baixa conversão)."
     })
 
+
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
