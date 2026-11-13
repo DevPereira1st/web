@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IA Analyzer - Linha de Desempenho</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center p-6">
+
+    <div class="max-w-5xl w-full bg-slate-900 rounded-xl shadow-2xl p-8 border border-slate-800">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">
+                Análise Preditiva de Horários (Gráfico de Linha) 📊
+            </h1>
+            <p class="text-slate-400 mt-2">Linha verde acima de 50% (Bom) e linha vermelha abaixo de 50% (Ruim).</p>
+        </header>
+
+        <!-- Controles -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div>
+                <label class="block text-sm font-medium mb-2 text-slate-300">Plataforma:</label>
+                <select id="plataforma" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-slate-200 focus:outline-none focus:border-emerald-500">
+                    <option value="reels">Instagram Reels</option>
+                    <option value="tiktok">TikTok</option>
+                    <option value="shorts">YouTube Shorts</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-2 text-slate-300">Nicho de Conteúdo:</label>
+                <select id="nicho" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-slate-200 focus:outline-none focus:border-emerald-500">
+                    <option value="geral">Geral / Entretenimento</option>
+                    <option value="gaming">Games / Gameplay / Lives</option>
+                    <option value="negocios">Negócios / Empreendedorismo</option>
+                    <option value="lifestyle">Lifestyle / Vlogs</option>
+                </select>
+            </div>
+        </div>
+
+        <button onclick="carregarAnalise()" class="w-full bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-bold py-3 px-6 rounded-lg transition shadow-lg cursor-pointer">
+            Gerar Gráficos de Linha 🚀
+        </button>
+
+        <!-- Resultados -->
+        <div id="resultado-container" class="mt-8 hidden space-y-8">
+            <div class="bg-slate-950/60 p-4 rounded-lg border border-slate-800">
+                <h3 class="text-lg font-semibold text-emerald-400 mb-1">🧠 Insights da IA</h3>
+                <p id="texto-ia" class="text-slate-300 text-sm"></p>
+            </div>
+
+            <!-- Cards Top Horários -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="cards-top"></div>
+
+            <!-- Gráfico de Hoje -->
+            <div class="bg-slate-950 rounded-lg p-4 border border-slate-800">
+                <div id="graficoHoje" style="width:100%; height:400px;"></div>
+            </div>
+
+            <!-- Gráfico do Próximo Dia -->
+            <div class="bg-slate-950 rounded-lg p-4 border border-slate-800">
+                <div id="graficoAmanha" style="width:100%; height:400px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function carregarAnalise() {
+            const plataforma = document.getElementById('plataforma').value;
+            const nicho = document.getElementById('nicho').value;
+
+            const response = await fetch('/api/analisar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ plataforma, nicho })
+            });
+
+            const data = await response.json();
+
+            document.getElementById('resultado-container').classList.remove('hidden');
+            document.getElementById('texto-ia').innerText = data.analise_ia;
+
+            Plotly.newPlot('graficoHoje', data.grafico_hoje.data, data.grafico_hoje.layout, {responsive: true});
+            Plotly.newPlot('graficoAmanha', data.grafico_amanha.data, data.grafico_amanha.layout, {responsive: true});
+
+            const cardsContainer = document.getElementById('cards-top');
+            cardsContainer.innerHTML = '';
+            
+            data.recomendacoes.forEach((item, index) => {
+                const corBadge = item.score >= 50 ? 'text-emerald-400' : 'text-red-400';
+                cardsContainer.innerHTML += `
+                    <div class="bg-slate-950 border border-slate-800 p-4 rounded-lg text-center">
+                        <span class="text-xs uppercase tracking-wider text-cyan-400 font-bold">Top #${index + 1} Horário</span>
+                        <div class="text-xl font-extrabold text-white mt-1">${item.hora}</div>
+                        <div class="text-xs text-slate-400 mt-1">Score: <span class="${corBadge} font-bold">${item.score}%</span></div>
+                    </div>
+                `;
+            });
+        }
+    </script>
+</body>
+</html>
